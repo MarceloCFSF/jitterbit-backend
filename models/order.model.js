@@ -1,10 +1,12 @@
 import database from "../services/database.js";
+import Item from "./item.model.js";
 
 class Order {
   constructor(row) {
     this.orderId = row.orderId;
     this.value = row.value;
     this.creationDate = row.creationDate;
+    this.items = [];
   }
 
   static async getAll() {
@@ -16,7 +18,7 @@ class Order {
   static async get(orderId) {
     const query = 'SELECT * FROM "Order" WHERE "orderId" = $1';
     const response = await database.query(query, [orderId]);
-    
+
     if (response.rowCount == 0) return null;
 
     const order = new Order(response.rows[0]);
@@ -27,7 +29,7 @@ class Order {
     const insertQuery = `
       INSERT INTO "Order" ("orderId", "value", "creationDate")
       VALUES ($1, $2, $3)
-      RETURNING "orderId";
+      RETURNING "orderId", "value", "creationDate";
     `;
     const values = [
       request.orderId,
@@ -35,16 +37,15 @@ class Order {
       request.creationDate
     ];
 
-    const response1 = await database.query(insertQuery, values);
+    const response = await database.query(insertQuery, values);
 
-    const getLastQuery = 'SELECT * FROM "Order" WHERE "orderId" = $1;';
-    const response2 = await database.query(
-      getLastQuery,
-      [response1.rows[0].orderId]
-    );
-
-    const order = new Order(response2.rows[0]);
+    const order = new Order(response.rows[0]);
     return order;
+  }
+
+  async connectItems() {
+    const items = await Item.getAllByOrderId(this.orderId);
+    this.items = items;
   }
 }
 
