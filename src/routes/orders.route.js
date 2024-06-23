@@ -1,9 +1,9 @@
 import express from "express";
+import orderController from "../../controllers/order.controller.js";
 
 const orderRoutes = express.Router();
 
-orderRoutes.get('/', (_, response) => {
-  response.json({ info: 'Get all Orders Route' })
-})
+orderRoutes.get('/list', orderController.getAll);
+orderRoutes.post('/', orderController.create);
 
 export default orderRoutes;
