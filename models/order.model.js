@@ -13,6 +13,16 @@ class Order {
     return orders;
   }
 
+  static async get(orderId) {
+    const query = 'SELECT * FROM "Order" WHERE "orderId" = $1';
+    const response = await database.query(query, [orderId]);
+    
+    if (response.rowCount == 0) return null;
+
+    const order = new Order(response.rows[0]);
+    return order;
+  }
+
   static async create(request) {
     const insertQuery = `
       INSERT INTO "Order" ("orderId", "value", "creationDate")
